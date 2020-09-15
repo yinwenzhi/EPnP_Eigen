@@ -13,7 +13,7 @@ EPnPEigen::EPnPEigen(Eigen::MatrixXd& points3d, Eigen::MatrixXd& points2d, Eigen
   reference_2d_points_ = points2d;  
   reference_points_count_ = reference_3d_points_.rows();
 
-  control_3d_points_ = Eigen::MatrixXd::Zero(4, 3);
+  control_3d_points_ = Eigen::MatrixXd::Zero(4, 3); 
   control_3d_points_camera_coord_ = Eigen::MatrixXd::Zero(4, 3);
   bary_centric_coord_ = Eigen::MatrixXd::Zero(reference_points_count_, 4);
   reference_3d_points_camera_coord_ = Eigen::MatrixXd::Zero(reference_points_count_, 3);
@@ -24,19 +24,19 @@ EPnPEigen::EPnPEigen(Eigen::MatrixXd& points3d, Eigen::MatrixXd& points2d, Eigen
   vc_ = K(1, 2);
 }
 
-
+// 计算得到4个控制点
 void EPnPEigen::chooseControlPoints(void){
   double lambda;
   Eigen::VectorXd eigvec;
-  Eigen::MatrixXd pointsSum = reference_3d_points_.colwise().sum();
-  pointsSum = pointsSum/reference_points_count_;
-  control_3d_points_.row(0) = pointsSum;
+  Eigen::MatrixXd pointsSum = reference_3d_points_.colwise().sum(); // 第一个控制点 首先对3d点坐标每一列坐标值 的和
+  pointsSum = pointsSum/reference_points_count_; // 取平均值
+  control_3d_points_.row(0) = pointsSum; // 第一个控制点 3d参考点集的重心
 
-  Eigen::MatrixXd centroidMat = pointsSum.replicate(reference_points_count_, 1);
+  Eigen::MatrixXd centroidMat = pointsSum.replicate(reference_points_count_, 1); // 应该是contoridmat 吧？
   Eigen::MatrixXd PW0 = reference_3d_points_ - centroidMat;
   Eigen::MatrixXd PW0t = PW0;
   PW0t.transposeInPlace();
-  Eigen::MatrixXd PW0tPW0 = PW0t * PW0;
+  Eigen::MatrixXd PW0tPW0 = PW0t * PW0; // PW0t 为 PW0 的转置
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(PW0tPW0);
   Eigen::VectorXd eigenval = es.eigenvalues();
@@ -97,7 +97,7 @@ void EPnPEigen::calculateM(Eigen::MatrixXd& M){
 
 }
 
-
+// 根据特征向量计算
 void EPnPEigen::computeL6x10(const Eigen::MatrixXd& U, Eigen::MatrixXd& L6x10){
   Eigen::MatrixXd V = U.block(0, 0, 12, 4);
   Eigen::MatrixXd DiffMat = Eigen::MatrixXd::Zero(18, 4);
@@ -109,8 +109,8 @@ void EPnPEigen::computeL6x10(const Eigen::MatrixXd& U, Eigen::MatrixXd& L6x10){
 
   Eigen::Vector3d v1, v2, v3, v4;
   for (int i = 0; i < 6; i++){
-  	v1 = DiffMat.block(3*i, 0, 3, 1);
-  	v2 = DiffMat.block(3*i, 1, 3, 1);
+  	v1 = DiffMat.block(3*i, 0, 3, 1); //特征向量vk的第i个3×1 sub-vector
+  	v2 = DiffMat.block(3*i, 1, 3, 1); 
   	v3 = DiffMat.block(3*i, 2, 3, 1);
   	v4 = DiffMat.block(3*i, 3, 3, 1);
 
@@ -145,6 +145,8 @@ void EPnPEigen::findBetasApprox1(const Eigen::MatrixXd& L6x10, const Eigen::Vect
 
   Eigen::VectorXd B = L6x4.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(rho);
 
+  cout <<"L6x4: " << L6x4 ;
+  cout <<"B: " << B ;
   if (B(0) < 0) {
     betas[0] = sqrt(-B(0));
     betas[1] = -B(1) / betas[0];
@@ -323,16 +325,16 @@ void EPnPEigen::computePose(){
 
   Eigen::MatrixXd M(2*reference_points_count_, 12);
   M = Eigen::MatrixXd::Zero(2*reference_points_count_, 12);
-  calculateM(M);
+  calculateM(M); // 计算得M矩阵
   
   Eigen::MatrixXd MtM = M.transpose() * M;
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(MtM);
-  Eigen::VectorXd eigenval = es.eigenvalues();
-  Eigen::MatrixXd eigvector = es.eigenvectors();
+  Eigen::VectorXd eigenval = es.eigenvalues(); // 特征值
+  Eigen::MatrixXd eigvector = es.eigenvectors(); // 特征向量
 
-  eigvector.block(0, 2, 12, 1) = -eigvector.block(0, 2, 12, 1);  // Jesse: only for debug
-  eigvector.block(0, 3, 12, 1) = -eigvector.block(0, 3, 12, 1);  // Jesse: only for debug
+  // eigvector.block(0, 2, 12, 1) = -eigvector.block(0, 2, 12, 1);  // Jesse: only for debug
+  // eigvector.block(0, 3, 12, 1) = -eigvector.block(0, 3, 12, 1);  // Jesse: only for debug
 
   Eigen::MatrixXd L6x10 = Eigen::MatrixXd::Zero(6, 10);
   Eigen::VectorXd rho(6, 1);

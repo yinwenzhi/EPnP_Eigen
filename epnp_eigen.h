@@ -38,11 +38,11 @@ class EPnPEigen {
   void computeRt(const Eigen::MatrixXd&U, double betas[4], Eigen::Matrix3d& R, Eigen::Vector3d& t);
 
 
-  Eigen::MatrixXd reference_3d_points_;
-  Eigen::MatrixXd reference_2d_points_;
-  Eigen::MatrixXd reference_3d_points_camera_coord_;
-  Eigen::MatrixXd control_3d_points_;
-  Eigen::MatrixXd control_3d_points_camera_coord_;
+  Eigen::MatrixXd reference_3d_points_;  // 3d参考点坐标
+  Eigen::MatrixXd reference_2d_points_;  // 2d参考点坐标
+  Eigen::MatrixXd reference_3d_points_camera_coord_; // 3d参考点在相机坐标系下坐标
+  Eigen::MatrixXd control_3d_points_; // 控制点
+  Eigen::MatrixXd control_3d_points_camera_coord_; // 控制点在相机坐标系下的坐标
   Eigen::MatrixXd bary_centric_coord_;
   int reference_points_count_;
   double fu_, fv_, uc_, vc_;

@@ -38,15 +38,19 @@ void randperm(int num, double max_range, Eigen::MatrixXd& reference_3d_points) {
 int main(int argc, char* argv[])
 {
   EPnPEigenDebugTool eigen_debug_tool;
-  Eigen::MatrixXd Pw(100, 3);
-  Eigen::MatrixXd pc(100, 2);
+  Eigen::MatrixXd Pw(4, 3);
+  Eigen::MatrixXd pc(4, 2);
   double R_pnp[3][3] = { 0.0 };
   double T_pnp[3] = { 0.0 }; 
 
   Eigen::Matrix3d K;
 
-  K << 120.0, 0, 321.0,
-       0, 122.0, 238.0,
+  // K << 120.0, 0, 321.0,
+  //      0, 122.0, 238.0,
+  //      0,     0,     1;
+
+    K << 5059.9, 0, 599.0,
+       0, 5059.9, 396.0,
        0,     0,     1;
 
   //randperm(100, 1000.0, Pw);
